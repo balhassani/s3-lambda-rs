@@ -1,0 +1,40 @@
+{
+  "features": {
+    "initScripts": "initialized"
+  },
+  "services": {
+    "acm": "available",
+    "apigateway": "available",
+    "cloudformation": "available",
+    "cloudwatch": "available",
+    "config": "available",
+    "dynamodb": "available",
+    "dynamodbstreams": "available",
+    "ec2": "running",
+    "es": "available",
+    "events": "available",
+    "firehose": "available",
+    "iam": "available",
+    "kinesis": "available",
+    "kms": "available",
+    "lambda": "running",
+    "logs": "available",
+    "redshift": "available",
+    "resource-groups": "available",
+    "resourcegroupstaggingapi": "available",
+    "route53": "available",
+    "route53resolver": "available",
+    "s3": "running",
+    "s3control": "available",
+    "secretsmanager": "available",
+    "sns": "available",
+    "sqs": "available",
+    "ssm": "available",
+    "stepfunctions": "available",
+    "sts": "available",
+    "support": "available",
+    "swf": "available",
+    "transcribe": "available"
+  },
+  "version": "1.2.1.dev"
+}
