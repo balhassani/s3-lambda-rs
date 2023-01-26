@@ -2,8 +2,11 @@
 default:
   just -l
 
-init: start provision build deploy exec
-destroy: clean deprovision stop nuke
+# run it all in one go
+do: start provision build deploy exec
+
+# undo it all in one go
+undo: clean deprovision stop nuke
 
 # spin up the services
 start:
@@ -44,9 +47,9 @@ provision:
 deprovision:
   terraform destroy -auto-approve
 
-# build the lambda
+# build the lambda (note: in prod, run with `--arm64`)
 build:
-  cargo lambda build --release --arm64 --output-format zip
+  cargo lambda build --release --output-format zip
 
 # remove the target
 clean:
@@ -59,5 +62,5 @@ deploy:
 
 # invoke the lambda
 exec:
-  aws lambda invoke --function-name func --invocation-type Event --cli-binary-format raw-in-base64-out --payload "{\"command\": \"hello\"}" response.json --endpoint-url http://localhost:4566
+  aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"command\": \"hello\"}" response.json --endpoint-url http://localhost:4566
   cat response.json
