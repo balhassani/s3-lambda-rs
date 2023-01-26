@@ -3,10 +3,10 @@ default:
   just -l
 
 # run it all in one go
-do: start provision build deploy exec
+go: start build provision run
 
 # undo it all in one go
-undo: clean deprovision stop nuke
+kill: deprovision clean stop nuke
 
 # spin up the services
 start:
@@ -40,12 +40,16 @@ consume:
 provision:
   terraform init
   terraform apply -auto-approve
-  aws iam list-roles --endpoint-url http://localhost:4566
-  aws s3 ls s3://dev --endpoint-url http://localhost:4566 --recursive
 
 # tear down the env
 deprovision:
   terraform destroy -auto-approve
+
+# inspect the env
+inspect:
+  aws iam list-roles --endpoint-url http://localhost:4566
+  aws s3 ls s3://dev --endpoint-url http://localhost:4566 --recursive
+  aws lambda list-functions --endpoint-url http://localhost:4566
 
 # build the lambda (note: in prod, run with `--arm64`)
 build:
@@ -56,11 +60,10 @@ clean:
   cargo clean
 
 # deploy the lambda
-deploy:
-  aws lambda create-function --function-name func --handler bootstrap --zip-file fileb://./target/lambda/s3-lambda-rs/bootstrap.zip --runtime provided.al2 --role arn:aws:iam::000000000000:role/lambda-exec --environment Variables={RUST_BACKTRACE=1} --tracing-config Mode=Active --endpoint-url http://localhost:4566
-  aws lambda list-functions --endpoint-url http://localhost:4566
+deploy: build
+  aws lambda update-function-code --function-name func --zip-file fileb://./target/lambda/s3-lambda-rs/bootstrap.zip --endpoint-url http://localhost:4566
 
 # invoke the lambda
-exec:
+run: deploy
   aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"command\": \"hello\"}" response.json --endpoint-url http://localhost:4566
   cat response.json

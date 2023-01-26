@@ -9,3 +9,7 @@ output "iam-role-arn" {
 output "bucket-arn" {
   value = aws_s3_bucket.bucket.arn
 }
+
+output "lambda-arn" {
+  value = aws_lambda_function.lambda.arn
+}

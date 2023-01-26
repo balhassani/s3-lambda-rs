@@ -32,7 +32,7 @@ async fn func(event: LambdaEvent<Request>) -> Result<Response, Error> {
     // Prepare the response
     let resp = Response {
         req_id: event.context.request_id,
-        msg: format!("Command {}.", command),
+        msg: format!("received -> {}.", command),
     };
 
     // Return `Response` (it will be serialized to JSON automatically by the runtime)

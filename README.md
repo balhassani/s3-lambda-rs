@@ -1,20 +1,29 @@
-Prototypes an s3 -> lambda -> kafka workflow.
+# Prototypes an s3 -> lambda -> kafka workflow
 
-*todo!*
-  - client: writes to s3
-  - s3: notifies when bucket changes
-  - lambda: sends message to kafka
-  - server: receives message from kafka
+## Workflow
+  - client writes to s3
+  - s3 notifies when bucket changes
+  - on change, lambda sends message to kafka
+  - server receives message from kafka
 
-To run it all in one go:
+## Basic commands
+
+To set up:
 ```
-just do
+just go
 ```
 
-To undo it all in one go:
+To iterate:
 ```
-just undo
+just run
 ```
+
+To tear down:
+```
+just kill
+```
+
+## Specific commands
 
 To spin up the services:
 ```
@@ -27,7 +36,7 @@ just consume
 just produce
 ```
 
-To provision the env:
+To provision the env (s3, iam, lambda):
 ```
 just provision
 ```
@@ -35,12 +44,13 @@ just provision
 To build the lambda:
 
 > in prod, run with `--arm64`; for localstack, run [without](https://github.com/localstack/localstack/issues/4921)
+
+> requires [cargo-lambda](https://github.com/cargo-lambda/cargo-lambda)
 ```
 just build
 ```
 
-To deploy & invoke the lambda:
+To invoke the lambda:
 ```
-just deploy
-just exec
+just run
 ```
