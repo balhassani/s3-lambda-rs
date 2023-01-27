@@ -1,41 +1,66 @@
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use tracing::info;
 
-/// This is a made-up example. Requests come into the runtime as unicode
-/// strings in json format, which can map to any structure that implements `serde::Deserialize`
-/// The runtime pays no attention to the contents of the request payload.
-#[derive(Deserialize)]
-struct Request {
-    command: String,
-}
-
-/// This is a made-up example of what a response structure may look like.
-/// There is no restriction on what it can be. The runtime requires responses
-/// to be serialized into json. The runtime pays no attention
-/// to the contents of the response payload.
 #[derive(Serialize)]
 struct Response {
     req_id: String,
     msg: String,
 }
 
-/// This is the main body for the function.
-/// Write your code inside it.
-/// There are some code example in the following URLs:
-/// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
-/// - https://github.com/aws-samples/serverless-rust-demo/
-async fn func(event: LambdaEvent<Request>) -> Result<Response, Error> {
-    // Extract some useful info from the request
-    let command = event.payload.command;
+// s3 event message structure: 
+// https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-content-structure.html
+#[derive(Deserialize)]
+struct Message {
+    #[serde(rename = "Records")]
+    records: Vec<Record>,
+}
 
-    // Prepare the response
+#[derive(Deserialize)]
+#[serde(rename = "record")]
+struct Record {
+    #[serde(rename = "eventName")]
+    event_name: String,
+    s3: S3,
+}
+
+#[derive(Deserialize)]
+struct S3 {
+    bucket: Bucket,
+    object: Object,
+}
+
+#[derive(Deserialize)]
+struct Bucket {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct Object {
+    key: String,
+}
+
+async fn func(event: LambdaEvent<Value>) -> Result<Response, Error> {
+    let (value, context) = event.into_parts();
+    info!("Received lambda event -> {:?}", value);
+
+    let message: Message = serde_json::from_value(value)?;
+
+    let event_name = &message.records.first().unwrap().event_name;
+    let bucket_name = &message.records.first().unwrap().s3.bucket.name;
+    let object_key = &message.records.first().unwrap().s3.object.key;
+
+    info!(
+        "Deserialized -> event name: {}, bucket name: {}, object key: {}",
+        event_name, bucket_name, object_key
+    );
+
     let resp = Response {
-        req_id: event.context.request_id,
-        msg: format!("received -> {}.", command),
+        req_id: context.request_id,
+        msg: format!("Received event {} for object {}.", event_name, object_key),
     };
 
-    // Return `Response` (it will be serialized to JSON automatically by the runtime)
     Ok(resp)
 }
 
@@ -43,9 +68,7 @@ async fn func(event: LambdaEvent<Request>) -> Result<Response, Error> {
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
-        // disable printing the name of the module in every log line.
         .with_target(false)
-        // disabling time is handy because CloudWatch will add the ingestion time.
         .without_time()
         .init();
 

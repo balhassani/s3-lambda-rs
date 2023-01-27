@@ -83,8 +83,9 @@ resource "aws_lambda_function" "lambda" {
 
   environment {
     variables = {
-      RUST_BACKTRACE = "1",
-      BUCKET_NAME    = aws_s3_bucket.bucket.id
+      RUST_BACKTRACE   = "1",
+      BUCKET_NAME      = "dev",
+      BOOTSTRAP_SERVER = "localhost:9092"
     }
   }
 

@@ -30,11 +30,11 @@ tail service="":
 
 # invoke a kafka producer
 produce:
-  docker exec --interactive --tty broker kafka-console-producer --bootstrap-server broker:9092 --topic quickstart
+  docker exec --interactive --tty broker kafka-console-producer --bootstrap-server broker:9092 --topic s3
 
 # invoke a kafka consumer
 consume:
-  docker exec --interactive --tty broker kafka-console-consumer --bootstrap-server broker:9092 --topic quickstart --from-beginning
+  docker exec --interactive --tty broker kafka-console-consumer --bootstrap-server broker:9092 --topic s3 --from-beginning
 
 # set up the env
 provision:
@@ -65,5 +65,5 @@ deploy: build
 
 # invoke the lambda
 run: deploy
-  aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"command\": \"hello\"}" response.json --endpoint-url http://localhost:4566
+  aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"Records\":[{\"eventName\":\"ObjectCreated:Put\",\"s3\":{\"bucket\":{\"name\":\"dev\"},\"object\":{\"key\":\"HappyFace.jpg\"}}}]}" response.json --endpoint-url http://localhost:4566
   cat response.json
