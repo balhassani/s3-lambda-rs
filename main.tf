@@ -78,13 +78,14 @@ resource "aws_lambda_function" "lambda" {
   filename      = "${path.module}/target/lambda/s3-lambda-rs/bootstrap.zip"
   function_name = "func"
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "index.test"
+  handler       = "bootstrap"
   runtime       = "provided.al2"
 
   environment {
     variables = {
       RUST_BACKTRACE   = "1",
       BUCKET_NAME      = "dev",
+      TOPIC_NAME       = "s3",
       BOOTSTRAP_SERVER = "localhost:9092"
     }
   }
