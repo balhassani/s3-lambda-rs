@@ -3,7 +3,6 @@ use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
-use std::fmt::Write;
 use std::time::Duration;
 use tracing::info;
 
@@ -18,12 +17,12 @@ struct Response {
 #[derive(Deserialize)]
 struct Message {
     #[serde(rename = "Records")]
-    records: Vec<Record>,
+    records: Vec<Event>,
 }
 
 #[derive(Deserialize)]
 #[serde(rename = "record")]
-struct Record {
+struct Event {
     #[serde(rename = "eventName")]
     event_name: String,
     s3: S3,
@@ -51,9 +50,9 @@ async fn func(event: LambdaEvent<Value>) -> Result<Response, Error> {
 
     let message: Message = serde_json::from_value(value)?;
 
-    let event_name: &str = &message.records.first()?.event_name;
-    let bucket_name: &str = &message.records.first()?.s3.bucket.name;
-    let object_key: &str = &message.records.first()?.s3.object.key;
+    let event_name: &str = &message.records.first().unwrap().event_name;
+    let bucket_name: &str = &message.records.first().unwrap().s3.bucket.name;
+    let object_key: &str = &message.records.first().unwrap().s3.object.key;
 
     info!(
         "Deserialized -> event name: {}, bucket name: {}, object key: {}",
@@ -68,12 +67,17 @@ async fn func(event: LambdaEvent<Value>) -> Result<Response, Error> {
         .with_required_acks(RequiredAcks::One)
         .create()?;
 
-    let mut buf = String::with_capacity(object_key.len());
-    producer.send(&Record::from_value(topic_name.as_str(), buf.as_bytes()));
+    producer
+        .send(&Record::from_key_value(
+            topic_name.as_str(),
+            event_name.as_bytes(),
+            object_key.as_bytes(),
+        ))
+        .unwrap();
 
     let resp = Response {
         req_id: context.request_id,
-        msg: format!("Received event {} for object {}.", event_name, object_key),
+        msg: format!("Received event {event_name} for object {object_key}."),
     };
 
     Ok(resp)
