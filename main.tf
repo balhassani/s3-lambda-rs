@@ -86,7 +86,7 @@ resource "aws_lambda_function" "lambda" {
       RUST_BACKTRACE   = "1",
       BUCKET_NAME      = "dev",
       TOPIC_NAME       = "s3",
-      BOOTSTRAP_SERVER = "localhost:9092"
+      BOOTSTRAP_SERVER = "broker:9092"
     }
   }
 
