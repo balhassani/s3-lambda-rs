@@ -65,9 +65,9 @@ deploy: build
 
 # invoke the lambda
 run: deploy
-  aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"Records\":[{\"eventName\":\"ObjectCreated:Put\",\"s3\":{\"bucket\":{\"name\":\"dev\"},\"object\":{\"key\":\"HappyFace.jpg\"}}}]}" response.json --endpoint-url http://localhost:4566
+  aws lambda invoke --function-name func --cli-binary-format raw-in-base64-out --payload "{\"Records\":[{\"eventSource\":\"aws:s3\",\"eventTime\":\"1970-01-01T00:00:00.000Z\",\"eventName\":\"ObjectCreated:Put\",\"s3\":{\"bucket\":{\"name\":\"dev\"},\"object\":{\"key\":\"HappyFace.jpg\"}}}]}" response.json --endpoint-url http://localhost:4566
   cat response.json
 
 # test the lambda
-test file:
-  aws s3 cp {{file}} s3://dev --endpoint-url http://localhost:4566
+test path:
+  aws s3 cp {{path}} s3://dev --recursive --endpoint-url http://localhost:4566
